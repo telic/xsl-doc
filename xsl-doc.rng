@@ -1,0 +1,537 @@
+<grammar
+    xmlns="http://relaxng.org/ns/structure/1.0"
+    datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"
+    xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+    xmlns:sch="http://purl.oclc.org/dsdl/schematron"
+    xmlns:sqf="http://www.schematron-quickfix.com/validator/process"
+    ns="http://max.terpstra.ca/ns/xsl-doc"
+>
+	<sch:ns prefix="xsl" uri="http://www.w3.org/1999/XSL/Transform"/>
+	<sch:ns prefix="xd" uri="http://max.terpstra.ca/ns/xsl-doc"/>
+
+	<start>
+		<choice>
+			<ref name="non-xsl-surround"/>
+			<ref name="xsl-root"/>
+			<ref name="non-xd"/>
+		</choice>
+	</start>
+
+	<define name="non-xsl-surround">
+		<element>
+			<anyName>
+				<except>
+					<nsName/>
+					<nsName ns="http://www.w3.org/1999/XSL/Transform"/>
+				</except>
+			</anyName>
+			<ref name="any.attrs"/>
+			<mixed>
+				<zeroOrMore>
+					<choice>
+						<ref name="non-xsl-surround"/>
+						<ref name="xsl-root"/>
+						<ref name="doc"/>
+					</choice>
+				</zeroOrMore>
+			</mixed>
+		</element>
+	</define>
+	
+	<define name="xsl-root">
+		<element>
+			<choice>
+				<name ns="http://www.w3.org/1999/XSL/Transform">transform</name>
+				<name ns="http://www.w3.org/1999/XSL/Transform">stylesheet</name>
+				<name ns="http://www.w3.org/1999/XSL/Transform">package</name>
+			</choice>
+			<ref name="any.attrs"/>
+			<mixed>
+				<zeroOrMore>
+					<choice>
+						<ref name="non-xd"/>
+						<ref name="xd.class"/>
+					</choice>
+				</zeroOrMore>
+			</mixed>
+		</element>
+	</define>
+	
+	<define name="non-xd">
+		<element>
+			<anyName>
+				<except>
+					<nsName/>
+				</except>
+			</anyName>
+			<ref name="any.attrs"/>
+			<mixed>
+				<zeroOrMore>
+					<ref name="non-xd"/>
+				</zeroOrMore>
+			</mixed>
+		</element>
+	</define>			
+	
+	<define name="any.attrs">
+		<zeroOrMore>
+			<attribute>
+				<anyName>
+					<except>
+						<nsName/>
+					</except>
+				</anyName>
+			</attribute>
+		</zeroOrMore>
+	</define>
+	
+	<define name="xd.class" combine="choice">
+		<choice>
+			<ref name="define"/>
+			<ref name="error"/>
+			<ref name="resultdoc"/>
+			<ref name="sourcedoc"/>
+			<ref name="doc"/>
+		</choice>		
+	</define>
+	
+	<!-- FIXME: allow xd:doc within xsl:package/xsl:use-package/xsl:override -->
+
+	<sch:pattern>
+		<sch:title>Documentation element placement</sch:title>
+		<sch:rule context="xd:doc[empty(@scope) or @scope='component']">
+			<sch:assert test="exists(following-sibling::*[1][self::xsl:*])">
+				A 'component' scoped xd:doc must be immediately followed
+				by the XSL component which it describes.
+			</sch:assert>
+		</sch:rule>
+		<sch:rule context="xd:doc">
+			<sch:assert test="exists(
+				parent::xsl:*
+					[local-name(.) = ('transform', 'stylesheet', 'package')]
+			)">
+				'package' and 'stylesheet' scoped xd:doc's may only appear as
+				a child of xsl:transform, xsl:stylesheet, or xsl:package.
+			</sch:assert>
+		</sch:rule>
+		<sch:rule context="xd:define | xd:error | xd:resultdoc | xd:sourcedoc">
+			<sch:assert test="exists(
+				parent::xsl:*
+					[local-name(.) = ('transform', 'stylesheet', 'package')]
+			)">
+				<sch:value-of select="name(.)"/> may only appear as a child
+				of xsl:transform, xsl:stylesheet, or xsl:package.
+			</sch:assert>
+		</sch:rule>
+	</sch:pattern>	
+
+	<!-- ################################################################### -->
+
+	<define name="define">
+		<element name="define">
+			<a:documentation>document a data structure, context, or term</a:documentation>
+			<attribute name="name">
+				<a:document>name this definition can be referenced by</a:document>
+				<data type="xs:QName"/>
+			</attribute>
+			<optional>
+				<ref name="as.attr"/>
+			</optional>
+			<choice>
+				<ref name="inline.model"/>
+				<interleave>
+					<ref name="common.model"/>
+					<optional>
+						<element name="map">
+							<zeroOrMore>
+								<element name="key">
+									<optional>
+										<ref name="as.attr"/>
+									</optional>
+									<optional>
+										<ref name="ref.attr"/>
+									</optional>
+									<ref name="inline.model"/>
+								</element>
+							</zeroOrMore>
+						</element>
+					</optional>
+				</interleave>
+			</choice>
+		</element>
+		<sch:pattern>
+			<sch:title>Structural constraints for xd:define</sch:title>
+			<sch:rule context="xd:define">
+				<sch:report test="
+					exists(xd:map) and
+					exists(@as) and
+					not(starts-with(@as, 'map(') or starts-with(@as, 'function('))
+				">
+					Use of xd:map implies definition SequenceType of map(*)*
+					(incompatible with type <sch:value-of select="@as"/>)
+				</sch:report>
+			</sch:rule>
+		</sch:pattern>
+	</define>
+	
+	<define name="error">
+		<element name="error">
+			<a:documentation>document an error code</a:documentation>
+			<attribute name="name">
+				<data type="xs:QName"/>
+			</attribute>
+			<choice>
+				<ref name="inline.model"/>
+				<ref name="common.model"/>
+			</choice>
+		</element>
+	</define>
+	
+	<define name="resultdoc">
+		<element name="resultdoc">
+			<optional>
+				<attribute name="uri">
+					<a:documentation>location of this document</a:documentation>
+					<data type="xs:anyURI"/>
+				</attribute>
+			</optional>
+			<choice>
+				<ref name="inline.model"/>
+				<interleave>
+					<ref name="common.model"/>
+					<zeroOrMore>
+						<element name="used-by">
+							<a:documentation>
+								reference to a component that produces this result
+							</a:documentation>
+							<optional>
+								<ref name="refsheet.attr"/>
+							</optional>
+							<attribute name="reftype">
+								<choice>
+									<value>function</value>
+									<value>template</value>
+								</choice>
+							</attribute>
+							<ref name="ref.attr"/>
+							<empty/>
+						</element>
+					</zeroOrMore>
+				</interleave>
+			</choice>
+		</element>
+	</define>
+	
+	<define name="sourcedoc">
+		<element name="sourcedoc">
+			<optional>
+				<attribute name="uri">
+					<a:documentation>location of this document</a:documentation>
+					<data type="xs:anyURI"/>
+				</attribute>
+			</optional>
+			<choice>
+				<ref name="inline.model"/>
+				<interleave>
+					<ref name="common.model"/>
+					<zeroOrMore>
+						<element name="used-by">
+							<a:documentation>
+								reference to a component that uses this source
+							</a:documentation>
+							<optional>
+								<ref name="refsheet.attr"/>
+							</optional>
+							<attribute name="reftype">
+								<choice>
+									<value>function</value>
+									<value>template</value>
+								</choice>
+							</attribute>
+							<ref name="ref.attr"/>
+							<empty/>
+						</element>
+					</zeroOrMore>
+				</interleave>
+			</choice>
+		</element>
+	</define>
+	
+	<define name="doc">
+		<element name="doc">
+			<optional>
+				<attribute name="scope" a:defaultValue="component">
+					<choice>
+						<value>component</value>
+						<value>stylesheet</value>
+						<value>package</value>
+					</choice>
+				</attribute>
+			</optional>
+			<choice>
+				<ref name="inline.model"/>
+				<ref name="doc.model"/>
+			</choice>
+		</element>
+	</define>
+
+	<!-- ################################################################### -->
+
+	<define name="doc.model" combine="interleave">
+		<interleave>
+			<ref name="common.model"/>
+			<zeroOrMore>
+				<element name="param">
+					<a:documentation>a parameter for this component</a:documentation>
+					<optional>
+						<ref name="ref.attr"/>
+					</optional>
+					<ref name="inline.model"/>
+				</element>
+			</zeroOrMore>
+			<optional>
+				<element name="return">
+					<a:documentation>the return value for this component</a:documentation>
+					<optional>
+						<ref name="ref.attr"/>
+					</optional>
+					<ref name="inline.model"/>
+				</element>
+			</optional>
+			<zeroOrMore>
+				<element name="error">
+					<a:documentation>an error this component may raise</a:documentation>
+					<optional>
+						<ref name="ref.attr"/>
+					</optional>
+					<ref name="inline.model"/>
+				</element>
+			</zeroOrMore>
+			<optional>
+				<element name="context">
+					<a:documentation>context this component expects</a:documentation>
+					<optional><ref name="ref.attr"/></optional>
+					<ref name="inline.model"/>
+				</element>
+			</optional>
+			<optional>
+				<element name="deprecated">
+					<a:documentation>mark this component as obsolete</a:documentation>
+					<empty/>
+				</element>
+			</optional>
+			<zeroOrMore>
+				<element name="author">
+					<a:documentation>author of this component</a:documentation>
+					<ref name="inline.model"/>
+				</element>
+			</zeroOrMore>
+			<zeroOrMore>
+				<element name="website">
+					<a:documentation>a related website</a:documentation>
+					<attribute name="href">
+						<data type="xs:anyURI"/>
+					</attribute>
+					<ref name="inline.model"/>
+				</element>
+			</zeroOrMore>
+			<zeroOrMore>
+				<element name="bugs">
+					<a:documentation>where to report bugs</a:documentation>
+					<attribute name="href">
+						<data type="xs:anyURI"/>
+					</attribute>
+					<ref name="inline.model"/>
+				</element>
+			</zeroOrMore>
+			<zeroOrMore>
+				<element name="license">
+					<a:documentation>copyright notice</a:documentation>
+					<optional>
+						<attribute name="href">
+							<a:documentation>link to canonical license text</a:documentation>
+							<data type="xs:anyURI"/>
+						</attribute>
+					</optional>
+					<optional>
+						<attribute name="name">
+							<a:documentation>common license name</a:documentation>
+							<choice>
+								<value>MIT</value>
+								<value>BSD-2-Clause</value>
+								<value>BSD-3-Clause</value>
+								<value>GPL-3.0</value>
+								<value>LGPL-3.0</value>
+								<value>MPL-2.0</value>
+								<value>CDDL-1.0</value>
+								<value>EPL-1.0</value>
+								<value>CC0</value>
+								<value>Apache-2.0</value>
+								<text/>
+							</choice>
+						</attribute>
+					</optional>
+					<ref name="inline.model"/>
+				</element>
+			</zeroOrMore>
+		</interleave>
+		<sch:pattern>
+			<sch:title>xd:doc content constraints</sch:title>
+			<!-- TODO:
+				- xd:website, xd:bugs, xd:license: stylesheet, package
+				- xd:context: stylesheet, package, template[@name]
+				- xd:return, xd:param, xd:error: stylesheet, package, template, function
+			-->
+		</sch:pattern>
+	</define>
+
+	<define name="common.model" combine="interleave">
+		<interleave>
+			<optional>
+				<element name="short">
+					<a:documentation>short, single sentance descripition</a:documentation>
+					<ref name="inline.model"/>
+				</element>
+			</optional>
+			<optional>
+				<element name="detail">
+					<a:documentation>detailed description</a:documentation>
+					<ref name="inline.model"/>
+				</element>
+			</optional>
+			<zeroOrMore>
+				<element name="see">
+					<a:documentation>link to other documentation</a:documentation>
+					<choice>
+						<ref name="fullref.attrs"/>
+						<attribute name="href">
+							<data type="xs:anyURI"/>
+						</attribute>
+					</choice>
+					<text/>
+				</element>
+			</zeroOrMore>
+		</interleave>
+	</define>
+
+	<define name="inline.model">
+		<zeroOrMore>
+			<ref name="inline.class"/>
+		</zeroOrMore>
+	</define>
+	
+	<define name="inline.class" combine="choice">
+		<choice>
+			<text/>
+			<ref name="ref"/>
+			<ref name="link"/>
+			<element>
+				<anyName>
+					<except>
+						<nsName/>
+					</except>
+				</anyName>
+				<ref name="any.attrs"/>
+				<zeroOrMore>
+					<ref name="inline.class"/>
+				</zeroOrMore>
+			</element>
+		</choice>
+	</define>
+
+	<define name="ref">
+		<element name="ref">
+			<a:documentation>linked reference to documentation of another item</a:documentation>
+			<choice>
+				<attribute name="id">
+					<a:documentation>reference an @xml:id</a:documentation>
+					<data type="xs:IDREF"/>
+				</attribute>
+				<group>
+					<optional>
+						<attribute name="sheet" a:defaultValue=".">
+							<a:documentation>stylesheet to look up a reference in</a:documentation>
+							<data type="xs:anyURI"/>
+						</attribute>
+					</optional>
+					<optional>
+						<attribute name="type" a:defaultValue="define">
+							<a:documentation>type of component to reference</a:documentation>
+							<ref name="reftype.data"/>
+						</attribute>
+					</optional>
+					<attribute name="name">
+						<a:documentation>reference name</a:documentation>
+					</attribute>
+				</group>
+			</choice>
+		</element>
+	</define>
+	
+	<define name="link">
+		<ref name="ref"/>
+	</define>
+
+	<define name="as.attr">	
+		<attribute name="as">
+			<a:documentation>SequenceType of this object</a:documentation>
+			<ref name="SequenceType.data"/>
+		</attribute>
+	</define>
+	
+	<define name="SequenceType.data">
+		<!-- any SequenceType from XPath -->
+	</define>
+	
+	<define name="refsheet.attr">
+		<attribute name="refsheet" a:defaultValue=".">
+			<a:documentation>stylesheet to look up a reference in</a:documentation>
+			<data type="xs:anyURI"/>
+		</attribute>
+	</define>
+
+	<define name="reftype.attr">	
+		<attribute name="reftype" a:defaultValue="define">
+			<a:documentation>type of component to reference</a:documentation>
+			<ref name="reftype.data"/>
+		</attribute>
+	</define>
+
+	<define name="reftype.data">
+		<choice>
+			<value>define</value>
+			<value>template</value>
+			<value>accumulator</value>
+			<value>attribute-set</value>
+			<value>character-map</value>
+			<value>function</value>
+			<value>key</value>
+			<value>decimal-format</value>
+			<value>mode</value>
+			<value>output</value>
+			<value>variable</value>
+			<value>param</value>
+			<value>sourcedoc</value>
+			<value>resultdoc</value>
+			<value>error</value>
+			<value>sourceline</value>
+		</choice>
+	</define>
+	
+	<define name="ref.attr">
+		<attribute name="ref">
+			<a:documentation>reference name</a:documentation>
+		</attribute>
+	</define>
+	
+	<define name="fullref.attrs">
+		<optional>
+			<ref name="refsheet.attr"/>
+		</optional>
+		<optional>
+			<ref name="reftype.attr"/>
+		</optional>
+		<ref name="ref.attr"/>
+	</define>
+
+</grammar>
