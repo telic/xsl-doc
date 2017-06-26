@@ -287,6 +287,9 @@
 								<a:documentation>type of component to reference</a:documentation>
 								<choice>
 									<value>function</value>
+									<value>key</value>
+									<value>package</value>
+									<value>stylesheet</value>
 									<value>template</value>
 								</choice>
 							</attribute>
