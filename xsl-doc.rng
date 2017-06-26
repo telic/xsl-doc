@@ -428,7 +428,21 @@
 			<optional>
 				<element name="context">
 					<a:documentation>context this component expects</a:documentation>
-					<optional><ref name="ref.attr"/></optional>
+					<optional>
+						<optional><ref name="refsheet.attr"/></optional>
+						<optional>
+							<attribute name="reftype" a:defaultValue="define">
+								<a:documentation>type of component to reference</a:documentation>
+								<choice>
+									<value>define</value>
+									<value>error</value>
+									<value>param</value>
+									<value>sourcedoc</value>
+								</choice>
+							</attribute>
+						</optional>
+						<ref name="ref.attr"/>
+					</optional>
 					<ref name="inline.model"/>
 				</element>
 			</optional>
