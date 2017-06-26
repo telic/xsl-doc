@@ -340,7 +340,7 @@
 				</element>
 			</zeroOrMore>
 			<optional>
-				<element name="return">
+				<element name="returns">
 					<a:documentation>the return value for this component</a:documentation>
 					<optional>
 						<ref name="ref.attr"/>
