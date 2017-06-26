@@ -140,8 +140,8 @@
 				parent::xsl:*
 					[local-name(.) = ('transform', 'stylesheet', 'package')]
 			)">
-				<sch:value-of select="name(.)"/> may only appear as a child
-				of xsl:transform, xsl:stylesheet, or xsl:package.
+				<sch:name/> may only appear as a child of xsl:transform,
+				xsl:stylesheet, or xsl:package.
 			</sch:assert>
 		</sch:rule>
 	</sch:pattern>	
