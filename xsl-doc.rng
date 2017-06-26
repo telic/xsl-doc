@@ -776,6 +776,56 @@
 		<ref name="ref.attr"/>
 	</define>
 
+	<sch:pattern>
+		<sch:title>Reference type syntaxes</sch:title>
+		<!-- error -->
+		<sch:rule context="*[@reftype eq 'error'] | xd:ref[@type eq 'error']">
+			<sch:let name="err" value="(@ref,@name)[1]"/>
+			<sch:assert test="$err castable as xs:QName">
+				References to errors must be lexical QNames.
+			</sch:assert>
+			<!-- don't require error references to actually refer to anything -->
+		</sch:rule>
+		<!-- package -->
+		<sch:rule context="*[@reftype eq 'package'] | xd:ref[@type eq 'package']">
+			<sch:let name="pkg" value="(@ref,@name)[1]"/>
+			<sch:assert test="$pkg eq '.' or resolve-uri($pkg) eq $pkg">
+				Package references must be an absolute package name URI, or
+				the special value "." to refer to the current package.
+			</sch:assert>
+			<!-- don't require package references to actually refer to anything -->
+		</sch:rule>
+		<!-- sourceline -->
+		<sch:rule context="*[@reftype eq 'sourceline'] | xd:ref[@type eq 'sourceline']">
+			<sch:assert test="(@ref,@name)[1] castable as xs:nonNegativeInteger">
+				References to XSL sources must be positive line numbers.
+			</sch:assert>
+		</sch:rule>
+		<!-- stylesheet -->
+		<sch:rule context="*[@reftype eq 'stylesheet'] | xd:ref[@type = 'stylesheet']">
+			<sch:let name="sheet" value="(@ref,@name)[1]"/>
+			<sch:let name="file" value="(@refsheet,@sheet)[1]"/>
+			<sch:assert test="$sheet eq '.' or $sheet castable as xs:IDREF">
+				Stylesheet references must be an IDREF, or the special
+				value "." to refer to the current stylesheet.
+			</sch:assert>
+			<sch:assert test="
+				not(self::xd:ref) or @name eq '.' or exists(@sheet) or
+				exists(//xsl:stylesheet[@id = current()/@name])
+			">
+				References to external stylesheets using xd:ref must specify
+				where the stylesheet is defined using @sheet.
+			</sch:assert>
+			<sch:assert test="
+				self::xd:ref or @ref eq '.' or exists(@refsheet) or
+				exists(//xsl:stylesheet[@id = current()/@ref])
+			">
+				References to external stylesheets using @ref must specify
+				where the stylesheet is defined using @refsheet.
+			</sch:assert>
+		</sch:rule>
+	</sch:pattern>
+
 	<sch:pattern abstract="true" id="redundant-backref">
 		<sch:rule context="xd:*[@uri]/$ref[@reftype eq $reftype]">
 			<sch:let name="thisURI" value="parent::xd:*/@uri"/>
