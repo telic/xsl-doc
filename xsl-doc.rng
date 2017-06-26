@@ -163,19 +163,7 @@
 				<interleave>
 					<ref name="common.model"/>
 					<optional>
-						<element name="map">
-							<zeroOrMore>
-								<element name="key">
-									<optional>
-										<ref name="as.attr"/>
-									</optional>
-									<optional>
-										<ref name="ref.attr"/>
-									</optional>
-									<ref name="inline.model"/>
-								</element>
-							</zeroOrMore>
-						</element>
+						<ref name="map"/>
 					</optional>
 				</interleave>
 			</choice>
@@ -325,7 +313,7 @@
 		</element>
 	</define>
 
-	<!-- ################################################################### -->
+<!-- ####################################################################### -->
 
 	<define name="doc.model" combine="interleave">
 		<interleave>
@@ -491,6 +479,72 @@
 			</element>
 		</choice>
 	</define>
+	
+	<define name="as.attr">
+		<attribute name="as">
+			<a:documentation>SequenceType of this object</a:documentation>
+			<ref name="SequenceType.data"/>
+		</attribute>
+	</define>
+	
+	<define name="SequenceType.data">
+		<!-- any SequenceType from XPath -->
+	</define>
+
+	<define name="map">
+		<element name="map">
+			<a:documentation>describe the structure of a map</a:documentation>
+			<zeroOrMore>
+				<element name="key">
+					<a:documentation>describe a map entry</a:documentation>
+					<attribute name="name">
+						<a:documentation>key name</a:documentation>
+						<data type="xs:anyAtomicType"/>
+					</attribute>
+					<choice>
+						<group>
+							<ref name="as.attr"/>
+							<attribute name="value">
+								<a:documentation>literal value for this key</a:documentation>
+							</attribute>
+							<ref name="inline.model"/>
+						</group>
+						<group>
+							<optional>
+								<ref name="as.attr"/>
+							</optional>
+							<optional>
+								<ref name="refsheet.attr"/>
+							</optional>
+							<optional>
+								<attribute name="reftype">
+									<a:documentation>type of component to reference</a:documentation>
+									<choice>
+										<value>define</value>
+										<value>function</value>
+										<value>resultdoc</value>
+										<value>sourcedoc</value>
+									</choice>
+								</attribute>
+							</optional>
+							<ref name="ref.attr"/>
+						</group>
+						<group>
+							<optional>
+								<ref name="as.attr"/>
+							</optional>
+							<choice>
+								<ref name="inline.model"/>
+								<ref name="map"/>
+							</choice>
+						</group>
+					</choice>
+				</element>
+			</zeroOrMore>
+		</element>
+	</define>
+
+<!-- ####################################################################### -->	
 
 	<define name="ref">
 		<element name="ref">
@@ -525,17 +579,6 @@
 		<ref name="ref"/>
 	</define>
 
-	<define name="as.attr">	
-		<attribute name="as">
-			<a:documentation>SequenceType of this object</a:documentation>
-			<ref name="SequenceType.data"/>
-		</attribute>
-	</define>
-	
-	<define name="SequenceType.data">
-		<!-- any SequenceType from XPath -->
-	</define>
-	
 	<define name="refsheet.attr">
 		<attribute name="refsheet" a:defaultValue=".">
 			<a:documentation>stylesheet to look up a reference in</a:documentation>
