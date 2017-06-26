@@ -633,6 +633,37 @@
 			<a:documentation>SequenceType of this object</a:documentation>
 			<data type="xs:token"/>
 		</attribute>
+		<sch:pattern>
+			<sch:rule context="xd:*[@as]">
+				<sch:let name="single" value="
+					replace(
+						replace(normalize-space(@as), '(\?|\*|\+)$', ''),
+						'^\s*\(\s*(.*)\s*\)\s*$',
+						'$1'
+					)
+				"/>
+				<sch:assert test="
+					$single castable as xs:QName or
+					(exists(
+						analyze-string($single, '^Q\{\s*([^\{\}]*)\s*\}(.*)$')
+							/fn:match
+								[fn:group[@nr=1] castable as xs:anyURI]
+								[fn:group[@nr=2] castable as xs:NCName]
+					)) or
+					matches(
+						$single,
+						'^(empty-sequence|item|comment|namespace-node|text|node)\s*\(\s*\)$'
+					) or
+					matches($single, '^(document-node|element|attribute|processing-instruction)\s\(.*\)$') or
+					matches($single, '^(function|map|array)\s*\(\s*\*\s*\)$') or
+					matches($single, '^function\s*\(.*\)\s*as.*$') or
+					matches($single, '^schema-(element|attribute)\s*\(.+\)$') or
+					matches($single, '^(map|array)\s*\(.*\)$')
+				">
+					@as must be an XPath SequenceType
+				</sch:assert>
+			</sch:rule>
+		</sch:pattern>
 	</define>
 
 	<define name="map">
