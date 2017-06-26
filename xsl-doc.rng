@@ -210,6 +210,15 @@
 				<ref name="common.model"/>
 			</choice>
 		</element>
+		<sch:pattern>
+			<sch:title>Constraints for xd:error</sch:title>
+			<sch:rule context="xd:error">
+				<sch:report test="exists(//xd:error/@name = @name)">
+					error-codes should not be documented more than once per file
+					(xd:error/@name must be unique).
+				</sch:report>
+			</sch:rule>
+		</sch:pattern>
 	</define>
 	
 	<define name="resultdoc">
