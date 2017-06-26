@@ -510,12 +510,66 @@
 			</zeroOrMore>
 		</interleave>
 		<sch:pattern>
-			<sch:title>xd:doc content constraints</sch:title>
-			<!-- TODO:
-				- xd:website, xd:bugs, xd:license: stylesheet, package
-				- xd:context: stylesheet, package, template[@name]
-				- xd:return, xd:param, xd:error: stylesheet, package, template, function
-			-->
+			<sch:title>Constraints for xd:doc child element applicability</sch:title>
+			<sch:let name="rootElements" value="('stylesheet', 'package')"/>
+			<sch:rule abstract="true" id="rootContext">
+				<sch:assert test="
+					parent::xd:doc/@scope = $rootElements
+					or
+					parent::xd:doc/following-sibling::xsl:*[1]
+						[local-name(.) = $rootElements]
+				">
+					<sch:name/> is only applicable to stylesheets and packages.
+				</sch:assert>
+			</sch:rule>
+			<sch:rule context="xd:website"><sch:extends rule="rootContext"/></sch:rule>
+			<sch:rule context="xd:bugs"><sch:extends rule="rootContext"/></sch:rule>
+			<sch:rule context="xd:license"><sch:extends rule="rootContext"/></sch:rule>
+			<sch:rule context="xd:context">
+				<sch:assert test="
+					parent::xd:doc/@scope = $rootElements
+					or
+					parent::xd:doc/following-sibling::xsl:*[1]
+						[local-name(.) = ($rootElements, 'key')]
+					or
+					parent::xd:doc/following-sibling::xsl:*[1]
+						[local-name(.) = 'template']
+						[exists(@name)]
+				">
+					xd:context is only applicable to stylesheets, packages,
+					named templates, and keys.
+				</sch:assert>
+			</sch:rule>
+			<sch:rule abstract="true" id="runnableContext">
+				<sch:assert test="
+					parent::xd:doc/@scope = $rootElements
+					or
+					parent::xd:doc/following-sibling::xsl:*[1]
+						[local-name(.) = ($rootElements, 'template', 'function')]
+				">
+					<sch:name/> is only applicable to stylesheets, packages,
+					templates, and functions.
+				</sch:assert>
+			</sch:rule>
+			<sch:rule context="xd:returns"><sch:extends rule="runnableContext"/></sch:rule>
+			<sch:rule context="xd:error"><sch:extends rule="runnableContext"/></sch:rule>
+			<sch:rule context="xd:param">
+				<sch:report test="
+					parent::xd:doc/@scope = $rootElements
+					or
+					parent::xd:doc/following-sibling::xsl:*[1]
+						[local-name(.) = $rootElements]
+				">
+					xd:param should not be used to describe package or
+					stylesheet parameters (use xd:doc on xsl:param instead).
+				</sch:report>
+				<sch:assert test="
+					parent::xd:doc/following-sibling::xsl:*[1]
+						[local-name(.) = ('template', 'function')]
+				">
+					xd:param is only applicable to templates and functions.
+				</sch:assert>
+			</sch:rule>
 		</sch:pattern>
 	</define>
 
