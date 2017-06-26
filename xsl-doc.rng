@@ -552,24 +552,24 @@
 
 	<define name="reftype.data">
 		<choice>
-			<value>define</value>
-			<value>template</value>
 			<value>accumulator</value>
 			<value>attribute-set</value>
 			<value>character-map</value>
+			<value>decimal-format</value>
+			<value>define</value>
+			<value>error</value>
 			<value>function</value>
 			<value>key</value>
-			<value>decimal-format</value>
 			<value>mode</value>
 			<value>output</value>
-			<value>variable</value>
 			<value>package</value>
 			<value>param</value>
-			<value>sourcedoc</value>
 			<value>resultdoc</value>
-			<value>error</value>
+			<value>sourcedoc</value>
 			<value>sourceline</value>
 			<value>stylesheet</value>
+			<value>template</value>
+			<value>variable</value>
 		</choice>
 	</define>
 	
