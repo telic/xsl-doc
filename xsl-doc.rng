@@ -191,6 +191,9 @@
 					Use of xd:map implies definition SequenceType of map(*)*
 					(incompatible with type <sch:value-of select="@as"/>).
 				</sch:report>
+				<sch:assert test="empty(//xd:define/@name = @name)">
+					Defined names (xd:define/@name) must be unique within a file.
+				</sch:assert>
 			</sch:rule>
 		</sch:pattern>
 	</define>
