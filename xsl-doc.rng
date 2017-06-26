@@ -248,6 +248,40 @@
 				</interleave>
 			</choice>
 		</element>
+		<sch:pattern>
+			<sch:title>Constraints for xd:resultdoc</sch:title>
+			<sch:rule context="xd:resultdoc">
+				<sch:assert test="empty(//xd:resultdoc/@uri = @uri)">
+					Specific result documents (xd:resultdoc[@uri]) should only
+					be documented once per file.
+				</sch:assert>
+			</sch:rule>
+		</sch:pattern>
+		<sch:pattern is-a="redundant-backref" id="redundant-produced-by-function">
+			<sch:param name="ref" value="xd:produced-by"/>
+			<sch:param name="backref" value="xd:returns"/>
+			<sch:param name="reftype" value="'function'"/>
+			<sch:param name="filter" value="
+				[
+					@name eq (
+						if (contains(current()/@ref, '#'))
+						then substring-before(current()/@ref, '#')
+						else current()/@ref
+					)
+				]
+				[
+					if (contains(current()/@ref, '#'))
+					then count(xsl:param) eq number(substring-after(current()/@ref, '#'))
+					else true()
+				]
+			"/>
+		</sch:pattern>
+		<sch:pattern is-a="redundant-backref" id="redundant-produced-by-template">
+			<sch:param name="ref" value="xd:produced-by"/>
+			<sch:param name="backref" value="xd:returns"/>
+			<sch:param name="reftype" value="'template'"/>
+			<sch:param name="filter" value="[@name eq current()/@ref]"/>
+		</sch:pattern>
 	</define>
 	
 	<define name="sourcedoc">
@@ -288,6 +322,52 @@
 				</interleave>
 			</choice>
 		</element>
+		<sch:pattern>
+			<sch:title>Constraints for xd:sourcedoc</sch:title>
+			<sch:rule context="xd:resultdoc">
+				<sch:assert test="empty(//xd:resultdoc/@uri = @uri)">
+					Specific source documents (xd:sourcedoc[@uri]) should only
+					be documented once per file.
+				</sch:assert>
+			</sch:rule>
+		</sch:pattern>
+		<sch:pattern is-a="redundant-backref" id="redundant-used-by-function">
+			<sch:param name="ref" value="xs:used-by"/>
+			<sch:param name="backref" value="xd:param"/>
+			<sch:param name="reftype" value="'function'"/>
+			<sch:param name="filter" value="
+				[
+					@name eq (
+						if (contains(current()/@ref, '#'))
+						then substring-before(current()/@ref, '#')
+						else current()/@ref
+					)
+				]
+				[
+					if (contains(current()/@ref, '#'))
+					then count(xsl:param) eq number(substring-after(current()/@ref, '#'))
+					else true()
+				]
+			"/>
+		</sch:pattern>
+		<sch:pattern is-a="redundant-backref" id="redundant-used-by-template">
+			<sch:param name="ref" value="xs:used-by"/>
+			<sch:param name="backref" value="xd:param"/>
+			<sch:param name="reftype" value="'template'"/>
+			<sch:param name="filter" value="[@name eq current()/@ref]"/>
+		</sch:pattern>
+		<sch:pattern is-a="redundant-backref" id="redundant-used-by-stylesheet">
+			<sch:param name="ref" value="xs:used-by"/>
+			<sch:param name="backref" value="xd:param"/>
+			<sch:param name="reftype" value="'stylesheet'"/>
+			<sch:param name="filter" value="[@id eq current()/@ref]"/>
+		</sch:pattern>
+		<sch:pattern is-a="redundant-backref" id="redundant-used-by-package">
+			<sch:param name="ref" value="xs:used-by"/>
+			<sch:param name="backref" value="xd:param"/>
+			<sch:param name="reftype" value="'package'"/>
+			<sch:param name="filter" value="[@uri eq current()/@ref]"/>
+		</sch:pattern>
 	</define>
 	
 	<define name="doc">
@@ -628,4 +708,46 @@
 		<ref name="ref.attr"/>
 	</define>
 
+	<sch:pattern abstract="true" id="redundant-backref">
+		<sch:rule context="xd:*[@uri]/$ref[@reftype eq $reftype]">
+			<sch:let name="thisURI" value="parent::xd:*/@uri"/>
+			<sch:let name="thisRoot" value="root()"/>
+			<sch:let name="thisHash" value="substring-after(@refsheet, '#')"/>
+			<sch:let name="sheet" value="
+				if (exists(@refsheet)) then
+					if (resolve-uri(@refsheet, base-uri()) eq document-uri()) then
+						if ($thisHash) then (//xsl:*[@id = $thisHash])[1]
+						else ancestor::xsl:*[last()]
+					else if (doc-available(@refsheet)) then
+						if ($thisHash) then
+							(doc(@refsheet)/descendant-or-self::xsl:*[@id = $thisHash])[1]
+						else if (doc(@refsheet)/root() is root()) then
+							ancestor::xsl:*[last()]
+						else
+							doc(@refsheet)
+					else
+						()
+				else
+					ancestor::xsl:*[last()]
+			"/>
+			<sch:report test="empty($sheet) or exists(
+				$sheet/descendant-or-self::xsl:*
+					[local-name(.) eq $reftype]
+					$filter
+					/preceding-sibling::*[1][self::xd:doc]
+						/$backref
+							[@reftype eq current()/parent::*/local-name()]
+							[@ref eq $thisURI]
+							[
+								(empty(@refsheet) and root() is $thisRoot)
+								or
+								(doc(resolve-uri(@refsheet, base-uri())) is $thisRoot)
+							]
+			)">
+				<sch:name/> should not reproduce information already evident
+				from a <sch:value-of select="$reftype"/>'s $backref documentation.
+			</sch:report>
+		</sch:rule>
+	</sch:pattern>
+	
 </grammar>
