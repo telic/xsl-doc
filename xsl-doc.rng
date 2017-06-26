@@ -18,6 +18,7 @@
 	</start>
 
 	<define name="non-xsl-surround">
+		<!-- xd:* and xsl:* may be embedded in arbitrary XML -->
 		<element>
 			<anyName>
 				<except>
@@ -31,6 +32,7 @@
 					<choice>
 						<ref name="non-xsl-surround"/>
 						<ref name="xsl-root"/>
+						<!-- can use xd:doc outside xsl to describe the xsl root -->
 						<ref name="doc"/>
 					</choice>
 				</zeroOrMore>
@@ -39,6 +41,7 @@
 	</define>
 	
 	<define name="xsl-root">
+		<!-- majority of xd:* appear inside the xsl root element -->
 		<element>
 			<choice>
 				<name ns="http://www.w3.org/1999/XSL/Transform">transform</name>
@@ -51,6 +54,26 @@
 					<choice>
 						<ref name="non-xd"/>
 						<ref name="xd.class"/>
+						<element name="xsl:use-package">
+							<!-- can also use xd:doc to describe overrided components -->
+							<ref name="any.attrs"/>
+							<zeroOrMore>
+								<choice>
+									<text/>
+									<ref name="non-xd"/>
+									<element name="xsl:override">
+										<ref name="any.attrs"/>
+										<zeroOrMore>
+											<choice>
+												<text/>
+												<ref name="non-xd"/>
+												<ref name="doc"/>
+											</choice>
+										</zeroOrMore>
+									</element>
+								</choice>
+							</zeroOrMore>
+						</element>
 					</choice>
 				</zeroOrMore>
 			</mixed>
@@ -95,8 +118,6 @@
 		</choice>		
 	</define>
 	
-	<!-- FIXME: allow xd:doc within xsl:package/xsl:use-package/xsl:override -->
-
 	<sch:pattern>
 		<sch:title>Documentation element placement</sch:title>
 		<sch:rule context="xd:doc[empty(@scope) or @scope='component']">
