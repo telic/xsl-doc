@@ -563,11 +563,13 @@
 			<value>mode</value>
 			<value>output</value>
 			<value>variable</value>
+			<value>package</value>
 			<value>param</value>
 			<value>sourcedoc</value>
 			<value>resultdoc</value>
 			<value>error</value>
 			<value>sourceline</value>
+			<value>stylesheet</value>
 		</choice>
 	</define>
 	
