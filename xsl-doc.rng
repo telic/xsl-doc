@@ -235,7 +235,7 @@
 				<interleave>
 					<ref name="common.model"/>
 					<zeroOrMore>
-						<element name="used-by">
+						<element name="produced-by">
 							<a:documentation>
 								reference to a component that produces this result
 							</a:documentation>
@@ -247,6 +247,10 @@
 								<choice>
 									<value>function</value>
 									<value>template</value>
+									<!--
+										intentionally omitted stylesheet and package;
+										use xd:returns/@ref instead
+									-->
 								</choice>
 							</attribute>
 							<ref name="ref.attr"/>
