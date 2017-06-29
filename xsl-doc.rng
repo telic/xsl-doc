@@ -253,7 +253,7 @@
 		<sch:pattern is-a="redundant-backref" id="redundant-produced-by-function">
 			<sch:param name="ref" value="xd:produced-by"/>
 			<sch:param name="backref" value="xd:returns"/>
-			<sch:param name="reftype" value="'function'"/>
+			<sch:param name="type" value="'function'"/>
 			<sch:param name="filter" value="
 				[
 					@name eq (
@@ -272,7 +272,7 @@
 		<sch:pattern is-a="redundant-backref" id="redundant-produced-by-template">
 			<sch:param name="ref" value="xd:produced-by"/>
 			<sch:param name="backref" value="xd:returns"/>
-			<sch:param name="reftype" value="'template'"/>
+			<sch:param name="type" value="'template'"/>
 			<sch:param name="filter" value="[@name eq current()/@ref]"/>
 		</sch:pattern>
 	</define>
@@ -327,7 +327,7 @@
 		<sch:pattern is-a="redundant-backref" id="redundant-used-by-function">
 			<sch:param name="ref" value="xd:used-by"/>
 			<sch:param name="backref" value="xd:param"/>
-			<sch:param name="reftype" value="'function'"/>
+			<sch:param name="type" value="'function'"/>
 			<sch:param name="filter" value="
 				[
 					@name eq (
@@ -346,19 +346,19 @@
 		<sch:pattern is-a="redundant-backref" id="redundant-used-by-template">
 			<sch:param name="ref" value="xd:used-by"/>
 			<sch:param name="backref" value="xd:param"/>
-			<sch:param name="reftype" value="'template'"/>
+			<sch:param name="type" value="'template'"/>
 			<sch:param name="filter" value="[@name eq current()/@ref]"/>
 		</sch:pattern>
 		<sch:pattern is-a="redundant-backref" id="redundant-used-by-stylesheet">
 			<sch:param name="ref" value="xd:used-by"/>
 			<sch:param name="backref" value="xd:param"/>
-			<sch:param name="reftype" value="'stylesheet'"/>
+			<sch:param name="type" value="'stylesheet'"/>
 			<sch:param name="filter" value="[@id eq current()/@ref]"/>
 		</sch:pattern>
 		<sch:pattern is-a="redundant-backref" id="redundant-used-by-package">
 			<sch:param name="ref" value="xd:used-by"/>
 			<sch:param name="backref" value="xd:param"/>
-			<sch:param name="reftype" value="'package'"/>
+			<sch:param name="type" value="'package'"/>
 			<sch:param name="filter" value="[@uri eq current()/@ref]"/>
 		</sch:pattern>
 	</define>
@@ -860,7 +860,7 @@
 	</sch:pattern>
 
 	<sch:pattern abstract="true" id="redundant-backref">
-		<sch:rule context="xd:*[@uri]/$ref[@reftype eq $reftype]">
+		<sch:rule context="xd:*[@uri]/$ref[@reftype eq $type]">
 			<sch:let name="thisURI" value="parent::xd:*/@uri"/>
 			<sch:let name="thisRoot" value="root()"/>
 			<sch:let name="thisHash" value="substring-after(@refsheet, '#')"/>
@@ -883,7 +883,7 @@
 			"/>
 			<sch:report test="empty($sheet) or exists(
 				$sheet/descendant-or-self::xsl:*
-					[local-name(.) eq $reftype]
+					[local-name(.) eq $type]
 					$filter
 					/preceding-sibling::*[1][self::xd:doc]
 						/$backref
@@ -896,7 +896,7 @@
 							]
 			)">
 				<sch:name/> should not reproduce information already evident
-				from a <sch:value-of select="$reftype"/>'s $backref documentation.
+				from a <sch:value-of select="$type"/>'s $backref documentation.
 			</sch:report>
 		</sch:rule>
 	</sch:pattern>
