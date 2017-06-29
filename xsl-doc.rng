@@ -483,12 +483,8 @@
 	<define name="as.attr">
 		<attribute name="as">
 			<a:documentation>SequenceType of this object</a:documentation>
-			<ref name="SequenceType.data"/>
+			<data type="xs:token"/>
 		</attribute>
-	</define>
-	
-	<define name="SequenceType.data">
-		<!-- any SequenceType from XPath -->
 	</define>
 
 	<define name="map">
