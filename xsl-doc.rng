@@ -9,6 +9,7 @@
 >
 	<sch:ns prefix="xsl" uri="http://www.w3.org/1999/XSL/Transform"/>
 	<sch:ns prefix="xd" uri="http://max.terpstra.ca/ns/xsl-doc"/>
+	<sch:ns prefix="fn" uri="http://www.w3.org/2005/xpath-functions"/>
 
 	<start>
 		<choice>
