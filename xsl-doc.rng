@@ -205,12 +205,10 @@
 	<define name="resource">
 		<element name="resource">
 			<a:documentation>describe a resource</a:documentation>
-			<optional>
-				<attribute name="uri">
-					<a:documentation>identifier or location</a:documentation>
-					<data type="anyURI"/>
-				</attribute>
-			</optional>
+			<attribute name="uri">
+				<a:documentation>identifier or location</a:documentation>
+				<data type="anyURI"/>
+			</attribute>
 			<choice>
 				<ref name="inline.model"/>
 				<interleave>
