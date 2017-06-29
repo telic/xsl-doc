@@ -114,8 +114,7 @@
 		<choice>
 			<ref name="define"/>
 			<ref name="error"/>
-			<ref name="resultdoc"/>
-			<ref name="sourcedoc"/>
+			<ref name="resource"/>
 			<ref name="doc"/>
 		</choice>		
 	</define>
@@ -137,7 +136,7 @@
 				a child of xsl:transform, xsl:stylesheet, or xsl:package.
 			</sch:assert>
 		</sch:rule>
-		<sch:rule context="xd:define | xd:error | xd:resultdoc | xd:sourcedoc">
+		<sch:rule context="xd:define | xd:error | xd:resource">
 			<sch:assert test="exists(
 				parent::xsl:*
 					[local-name(.) = ('transform', 'stylesheet', 'package')]
@@ -203,12 +202,12 @@
 		</sch:pattern>
 	</define>
 	
-	<define name="resultdoc">
-		<element name="resultdoc">
-			<a:documentation>describe a result document</a:documentation>
+	<define name="resource">
+		<element name="resource">
+			<a:documentation>describe a resource</a:documentation>
 			<optional>
 				<attribute name="uri">
-					<a:documentation>document identifier or location</a:documentation>
+					<a:documentation>identifier or location</a:documentation>
 					<data type="anyURI"/>
 				</attribute>
 			</optional>
@@ -219,7 +218,7 @@
 					<zeroOrMore>
 						<element name="produced-by">
 							<a:documentation>
-								reference to a component that produces this result
+								reference to a component that produces this resource
 							</a:documentation>
 							<optional>
 								<ref name="refsheet.attr"/>
@@ -239,15 +238,36 @@
 							<empty/>
 						</element>
 					</zeroOrMore>
+					<zeroOrMore>
+						<element name="used-by">
+							<a:documentation>
+								reference to a component that uses this resource
+							</a:documentation>
+							<optional>
+								<ref name="refsheet.attr"/>
+							</optional>
+							<attribute name="reftype">
+								<a:documentation>type of component to reference</a:documentation>
+								<choice>
+									<value>function</value>
+									<value>key</value>
+									<value>package</value>
+									<value>stylesheet</value>
+									<value>template</value>
+								</choice>
+							</attribute>
+							<ref name="ref.attr"/>
+							<empty/>
+						</element>
+					</zeroOrMore>
 				</interleave>
 			</choice>
 		</element>
 		<sch:pattern>
-			<sch:title>Constraints for xd:resultdoc</sch:title>
-			<sch:rule context="xd:resultdoc">
-				<sch:assert test="empty(//xd:resultdoc/@uri = @uri)">
-					Specific result documents (xd:resultdoc[@uri]) should only
-					be documented once per file.
+			<sch:title>Constraints for xd:resource</sch:title>
+			<sch:rule context="xd:resource[@uri]">
+				<sch:assert test="count(//xd:resource[@uri = current()/@uri]) eq 1">
+					Resource URIs (xd:resource/@uri) must be unique within a file.
 				</sch:assert>
 			</sch:rule>
 		</sch:pattern>
@@ -275,55 +295,6 @@
 			<sch:param name="backref" value="xd:returns"/>
 			<sch:param name="type" value="'template'"/>
 			<sch:param name="filter" value="[@name eq current()/@ref]"/>
-		</sch:pattern>
-	</define>
-	
-	<define name="sourcedoc">
-		<element name="sourcedoc">
-			<a:documentation>describe a source document</a:documentation>
-			<optional>
-				<attribute name="uri">
-					<a:documentation>document identifier or location</a:documentation>
-					<data type="anyURI"/>
-				</attribute>
-			</optional>
-			<choice>
-				<ref name="inline.model"/>
-				<interleave>
-					<ref name="common.model"/>
-					<zeroOrMore>
-						<element name="used-by">
-							<a:documentation>
-								reference to a component that uses this source
-							</a:documentation>
-							<optional>
-								<ref name="refsheet.attr"/>
-							</optional>
-							<attribute name="reftype">
-								<a:documentation>type of component to reference</a:documentation>
-								<choice>
-									<value>function</value>
-									<value>key</value>
-									<value>package</value>
-									<value>stylesheet</value>
-									<value>template</value>
-								</choice>
-							</attribute>
-							<ref name="ref.attr"/>
-							<empty/>
-						</element>
-					</zeroOrMore>
-				</interleave>
-			</choice>
-		</element>
-		<sch:pattern>
-			<sch:title>Constraints for xd:sourcedoc</sch:title>
-			<sch:rule context="xd:resultdoc">
-				<sch:assert test="empty(//xd:resultdoc/@uri = @uri)">
-					Specific source documents (xd:sourcedoc[@uri]) should only
-					be documented once per file.
-				</sch:assert>
-			</sch:rule>
 		</sch:pattern>
 		<sch:pattern is-a="redundant-backref" id="redundant-used-by-function">
 			<sch:param name="ref" value="xd:used-by"/>
@@ -431,7 +402,7 @@
 									<value>define</value>
 									<value>error</value>
 									<value>param</value>
-									<value>sourcedoc</value>
+									<value>resource</value>
 								</choice>
 							</attribute>
 						</optional>
@@ -699,8 +670,7 @@
 							<choice>
 								<value>define</value>
 								<value>function</value>
-								<value>resultdoc</value>
-								<value>sourcedoc</value>
+								<value>resource</value>
 							</choice>
 						</attribute>
 					</optional>
@@ -785,8 +755,7 @@
 			<value>output</value>
 			<value>package</value>
 			<value>param</value>
-			<value>resultdoc</value>
-			<value>sourcedoc</value>
+			<value>resource</value>
 			<value>sourceline</value>
 			<value>stylesheet</value>
 			<value>template</value>
@@ -861,8 +830,8 @@
 	</sch:pattern>
 
 	<sch:pattern abstract="true" id="redundant-backref">
-		<sch:rule context="xd:*[@uri]/$ref[@reftype eq $type]">
-			<sch:let name="thisURI" value="parent::xd:*/@uri"/>
+		<sch:rule context="xd:resource[@uri]/$ref[@reftype eq $type]">
+			<sch:let name="thisURI" value="parent::xd:resource/@uri"/>
 			<sch:let name="thisRoot" value="root()"/>
 			<sch:let name="thisHash" value="substring-after(@refsheet, '#')"/>
 			<sch:let name="sheet" value="
@@ -888,7 +857,7 @@
 					$filter
 					/preceding-sibling::*[1][self::xd:doc]
 						/$backref
-							[@reftype eq current()/parent::*/local-name()]
+							[@reftype eq 'resource']
 							[@ref eq $thisURI]
 							[
 								(empty(@refsheet) and root() is $thisRoot)
