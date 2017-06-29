@@ -172,14 +172,6 @@
 		<sch:pattern>
 			<sch:title>Constraints for xd:define</sch:title>
 			<sch:rule context="xd:define">
-				<sch:report test="
-					exists(xd:map) and
-					exists(@as) and
-					not(starts-with(@as, 'map(') or starts-with(@as, 'function('))
-				">
-					Use of xd:map implies definition SequenceType of map(*)*
-					(incompatible with type <sch:value-of select="@as"/>).
-				</sch:report>
 				<sch:assert test="empty(//xd:define/@name = @name)">
 					Defined names (xd:define/@name) must be unique within a file.
 				</sch:assert>
@@ -669,55 +661,64 @@
 
 	<define name="map">
 		<element name="map">
-			<a:documentation>describe the structure of a map</a:documentation>
-			<zeroOrMore>
-				<element name="key">
-					<a:documentation>describe a map entry</a:documentation>
-					<attribute name="name">
-						<a:documentation>key name</a:documentation>
-						<data type="anyAtomicType"/>
-					</attribute>
-					<choice>
-						<group>
-							<ref name="as.attr"/>
-							<attribute name="value">
-								<a:documentation>literal value for this key</a:documentation>
-							</attribute>
-							<ref name="inline.model"/>
-						</group>
-						<group>
-							<optional>
-								<ref name="as.attr"/>
-							</optional>
-							<optional>
-								<ref name="refsheet.attr"/>
-							</optional>
-							<optional>
-								<attribute name="reftype">
-									<a:documentation>type of component to reference</a:documentation>
-									<choice>
-										<value>define</value>
-										<value>function</value>
-										<value>resultdoc</value>
-										<value>sourcedoc</value>
-									</choice>
-								</attribute>
-							</optional>
-							<ref name="ref.attr"/>
-						</group>
-						<group>
-							<optional>
-								<ref name="as.attr"/>
-							</optional>
+			<a:documentation>describe a map entry</a:documentation>
+			<attribute name="key">
+				<a:documentation>map key</a:documentation>
+			</attribute>
+			<optional>
+				<attribute name="key-as">
+					<a:documentation>atomic type of the key</a:documentation>
+					<data type="QName"/>
+				</attribute>
+			</optional>
+			<choice>
+				<group>
+					<optional>
+						<attribute name="value">
+							<a:documentation>literal value associated with this key</a:documentation>
+						</attribute>
+					</optional>
+					<optional>
+						<ref name="as.attr"/>
+					</optional>
+					<interleave>
+						<optional>
+							<ref name="map"/>
+						</optional>
+						<ref name="inline.model"/>
+					</interleave>
+				</group>
+				<group>
+					<optional>
+						<ref name="refsheet.attr"/>
+					</optional>
+					<optional>
+						<attribute name="reftype">
+							<a:documentation>type of component to reference</a:documentation>
 							<choice>
-								<ref name="inline.model"/>
-								<ref name="map"/>
+								<value>define</value>
+								<value>function</value>
+								<value>resultdoc</value>
+								<value>sourcedoc</value>
 							</choice>
-						</group>
-					</choice>
-				</element>
-			</zeroOrMore>
+						</attribute>
+					</optional>
+					<ref name="ref.attr"/>
+				</group>
+			</choice>
 		</element>
+		<sch:pattern>
+			<sch:title>Only use xd:map to describe maps</sch:title>
+			<sch:rule context="xd:map">
+				<sch:report test="
+					exists(parent::xd:*/@as) and
+					not(starts-with(parent::xd:*/@as, 'map('))
+				">
+					Use of xd:map is incompatible with context SequenceType
+					<sch:value-of select="parent::*/@as"/>.
+				</sch:report>
+			</sch:rule>
+		</sch:pattern>
 	</define>
 
 <!-- ####################################################################### -->	
