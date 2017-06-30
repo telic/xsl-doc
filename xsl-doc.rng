@@ -172,7 +172,7 @@
 		<sch:pattern>
 			<sch:title>Constraints for xd:define</sch:title>
 			<sch:rule context="xd:define">
-				<sch:assert test="empty(//xd:define/@name = @name)">
+				<sch:assert test="not(@name = (//xd:define except .)/@name)">
 					Defined names (xd:define/@name) must be unique within a file.
 				</sch:assert>
 			</sch:rule>
@@ -194,7 +194,7 @@
 		<sch:pattern>
 			<sch:title>Constraints for xd:error</sch:title>
 			<sch:rule context="xd:error">
-				<sch:report test="exists(//xd:error/@name = @name)">
+				<sch:report test="@name = (//xd:error except .)/@name">
 					error-codes should not be documented more than once per file
 					(xd:error/@name must be unique).
 				</sch:report>
@@ -263,8 +263,8 @@
 		</element>
 		<sch:pattern>
 			<sch:title>Constraints for xd:resource</sch:title>
-			<sch:rule context="xd:resource[@uri]">
-				<sch:assert test="count(//xd:resource[@uri = current()/@uri]) eq 1">
+			<sch:rule context="xd:resource">
+				<sch:assert test="not(@uri = (//xd:resource except .)/@uri)">
 					Resource URIs (xd:resource/@uri) must be unique within a file.
 				</sch:assert>
 			</sch:rule>
