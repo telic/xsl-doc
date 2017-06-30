@@ -361,6 +361,7 @@
 					</grammar>
 					<ref name="inline.model"/>
 				</element>
+				<!-- TODO: check that param exists -->
 			</zeroOrMore>
 			<optional>
 				<element name="returns">
@@ -378,7 +379,7 @@
 				</element>
 			</optional>
 			<zeroOrMore>
-				<element name="error">
+				<element name="raises">
 					<a:documentation>an error this component may raise</a:documentation>
 					<grammar>
 						<include href="fullref.rng">
@@ -515,7 +516,7 @@
 				</sch:assert>
 			</sch:rule>
 			<sch:rule context="xd:returns"><sch:extends rule="runnableContext"/></sch:rule>
-			<sch:rule context="xd:error"><sch:extends rule="runnableContext"/></sch:rule>
+			<sch:rule context="xd:raises"><sch:extends rule="runnableContext"/></sch:rule>
 			<sch:rule context="xd:param">
 				<sch:report test="
 					parent::xd:doc/@scope = $rootElements
@@ -785,7 +786,7 @@
 	<sch:pattern>
 		<sch:title>Reference type syntaxes</sch:title>
 		<!-- error -->
-		<sch:rule context="*[@reftype eq 'error'] | xd:ref[@type eq 'error']">
+		<sch:rule context="*[@reftype eq 'error'] | xd:ref[@type eq 'error'] | xd:raises[@ref]">
 			<sch:let name="err" value="(@ref,@name)[1]"/>
 			<sch:assert test="$err castable as xs:QName">
 				References to errors must be lexical QNames.
