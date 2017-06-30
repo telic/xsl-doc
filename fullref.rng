@@ -1,0 +1,38 @@
+<grammar
+    xmlns="http://relaxng.org/ns/structure/1.0"
+    datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes"
+    xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0"
+    ns="http://max.terpstra.ca/ns/xsl-doc"	
+>
+	<start>
+		<ref name="fullref.attrs"/>
+	</start>
+
+	<define name="fullref.attrs">
+		<ref name="refsheet.attr"/>
+		<ref name="reftype.attr"/>
+		<attribute name="ref">
+			<a:documentation>reference name</a:documentation>
+		</attribute>
+	</define>
+
+	<define name="refsheet.attr">
+		<optional>
+			<attribute name="refsheet" a:defaultValue=".">
+				<a:documentation>stylesheet to look up a reference in</a:documentation>
+				<data type="anyURI"/>
+			</attribute>
+		</optional>
+	</define>
+	
+	<define name="reftype.attr">
+		<attribute name="reftype">
+			<a:documentation>type of component to reference</a:documentation>
+			<ref name="reftype.data"/>
+		</attribute>
+	</define>
+
+	<define name="reftype.data" combine="choice">
+		<notAllowed/>
+	</define>
+</grammar>

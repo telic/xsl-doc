@@ -218,21 +218,12 @@
 							<a:documentation>
 								reference to a component that produces this resource
 							</a:documentation>
-							<optional>
-								<ref name="refsheet.attr"/>
-							</optional>
-							<attribute name="reftype">
-								<a:documentation>type of component to reference</a:documentation>
-								<choice>
-									<value>function</value>
-									<value>template</value>
-									<!--
-										intentionally omitted stylesheet and package;
-										use xd:returns/@ref instead
-									-->
-								</choice>
-							</attribute>
-							<ref name="ref.attr"/>
+							<grammar>
+								<include href="fullref.rng"/>
+								<define name="reftype.data">
+									<parentRef name="reftype-callable.data"/>
+								</define>
+							</grammar>
 							<empty/>
 						</element>
 					</zeroOrMore>
@@ -241,20 +232,15 @@
 							<a:documentation>
 								reference to a component that uses this resource
 							</a:documentation>
-							<optional>
-								<ref name="refsheet.attr"/>
-							</optional>
-							<attribute name="reftype">
-								<a:documentation>type of component to reference</a:documentation>
-								<choice>
-									<value>function</value>
-									<value>key</value>
-									<value>package</value>
-									<value>stylesheet</value>
-									<value>template</value>
-								</choice>
-							</attribute>
-							<ref name="ref.attr"/>
+							<grammar>
+								<include href="fullref.rng"/>
+								<define name="reftype.data">
+									<choice>
+										<parentRef name="reftype-callable.data"/>
+										<parentRef name="reftype-root.data"/>
+									</choice>
+								</define>
+							</grammar>
 							<empty/>
 						</element>
 					</zeroOrMore>
@@ -364,48 +350,62 @@
 			<zeroOrMore>
 				<element name="param">
 					<a:documentation>a parameter for this component</a:documentation>
-					<optional>
-						<ref name="ref.attr"/>
-					</optional>
+					<attribute name="name">
+						<a:documentation>parameter name</a:documentation>
+					</attribute>
+					<grammar>
+						<include href="fullref.rng"/>
+						<define name="reftype.data">
+							<parentRef name="reftype-abstract.data"/>
+						</define>
+					</grammar>
 					<ref name="inline.model"/>
 				</element>
 			</zeroOrMore>
 			<optional>
 				<element name="returns">
 					<a:documentation>the return value for this component</a:documentation>
-					<optional>
-						<ref name="ref.attr"/>
-					</optional>
+					<grammar>
+						<include href="fullref.rng"/>
+						<define name="reftype.data">
+							<choice>
+								<parentRef name="reftype-abstract.data"/>
+								<parentRef name="reftype-function.data"/>
+							</choice>
+						</define>
+					</grammar>
 					<ref name="inline.model"/>
 				</element>
 			</optional>
 			<zeroOrMore>
 				<element name="error">
 					<a:documentation>an error this component may raise</a:documentation>
-					<optional>
-						<ref name="ref.attr"/>
-					</optional>
+					<grammar>
+						<include href="fullref.rng">
+							<define name="reftype.attr">
+								<optional>
+									<attribute name="reftype">
+										<parentRef name="reftype-error.data"/>
+									</attribute>
+								</optional>
+							</define>
+						</include>
+					</grammar>
 					<ref name="inline.model"/>
 				</element>
 			</zeroOrMore>
 			<optional>
 				<element name="context">
 					<a:documentation>context this component expects</a:documentation>
-					<optional>
-						<optional><ref name="refsheet.attr"/></optional>
-						<optional>
-							<attribute name="reftype" a:defaultValue="define">
-								<a:documentation>type of component to reference</a:documentation>
-								<choice>
-									<value>define</value>
-									<value>error</value>
-									<value>param</value>
-									<value>resource</value>
-								</choice>
-							</attribute>
-						</optional>
-						<ref name="ref.attr"/>
-					</optional>
+					<grammar>
+						<include href="fullref.rng"/>
+						<define name="reftype.data">
+							<choice>
+								<parentRef name="reftype-abstract.data"/>
+								<parentRef name="reftype-error.data"/>
+							</choice>
+						</define>
+					</grammar>
 					<ref name="inline.model"/>
 				</element>
 			</optional>
@@ -554,7 +554,12 @@
 				<element name="see">
 					<a:documentation>link to other documentation</a:documentation>
 					<choice>
-						<ref name="fullref.attrs"/>
+						<grammar>
+							<include href="fullref.rng"/>
+							<define name="reftype.data">
+								<parentRef name="reftype-any.data"/>
+							</define>
+						</grammar>
 						<attribute name="href">
 							<a:documentation>a URL to link to</a:documentation>
 							<data type="anyURI"/>
@@ -576,7 +581,6 @@
 		<choice>
 			<text/>
 			<ref name="ref"/>
-			<ref name="link"/>
 			<element>
 				<anyName>
 					<except>
@@ -658,22 +662,15 @@
 						<ref name="inline.model"/>
 					</interleave>
 				</group>
-				<group>
-					<optional>
-						<ref name="refsheet.attr"/>
-					</optional>
-					<optional>
-						<attribute name="reftype">
-							<a:documentation>type of component to reference</a:documentation>
-							<choice>
-								<value>define</value>
-								<value>function</value>
-								<value>resource</value>
-							</choice>
-						</attribute>
-					</optional>
-					<ref name="ref.attr"/>
-				</group>
+				<grammar>
+					<include href="fullref.rng"/>
+					<define name="reftype.data">
+						<choice>
+							<parentRef name="reftype-abstract.data"/>
+							<parentRef name="reftype-function.data"/>
+						</choice>
+					</define>
+				</grammar>
 			</choice>
 		</element>
 		<sch:pattern>
@@ -707,12 +704,10 @@
 							<data type="anyURI"/>
 						</attribute>
 					</optional>
-					<optional>
-						<attribute name="type" a:defaultValue="define">
-							<a:documentation>type of component to reference</a:documentation>
-							<ref name="reftype.data"/>
-						</attribute>
-					</optional>
+					<attribute name="type">
+						<a:documentation>type of component to reference</a:documentation>
+						<ref name="reftype-any.data"/>
+					</attribute>
 					<attribute name="name">
 						<a:documentation>reference name</a:documentation>
 					</attribute>
@@ -720,61 +715,71 @@
 			</choice>
 		</element>
 	</define>
+
+	<define name="reftype-function.data">
+		<value>function</value>
+		<a:documentation>an xsl:function or set of xsl:function with the same name</a:documentation>
+	</define>
 	
-	<define name="link">
-		<ref name="ref"/>
-	</define>
-
-	<define name="refsheet.attr">
-		<attribute name="refsheet" a:defaultValue=".">
-			<a:documentation>stylesheet to look up a reference in</a:documentation>
-			<data type="anyURI"/>
-		</attribute>
-	</define>
-
-	<define name="reftype.attr">	
-		<attribute name="reftype" a:defaultValue="define">
-			<a:documentation>type of component to reference</a:documentation>
-			<ref name="reftype.data"/>
-		</attribute>
-	</define>
-
-	<define name="reftype.data">
+	<define name="reftype-abstract.data">
 		<choice>
-			<value>accumulator</value>
-			<value>attribute-set</value>
-			<value>character-map</value>
-			<value>decimal-format</value>
 			<value>define</value>
-			<value>error</value>
-			<value>function</value>
-			<value>key</value>
-			<value>mode</value>
-			<value>output</value>
-			<value>package</value>
-			<value>param</value>
+			<a:documentation>an xd:define</a:documentation>
 			<value>resource</value>
-			<value>sourceline</value>
-			<value>stylesheet</value>
-			<value>template</value>
-			<value>variable</value>
+			<a:documentation>an xd:resource</a:documentation>
+			<ref name="reftype-function.data"/>
 		</choice>
 	</define>
 	
-	<define name="ref.attr">
-		<attribute name="ref">
-			<a:documentation>reference name</a:documentation>
-		</attribute>
+	<define name="reftype-callable.data">
+		<choice>
+			<ref name="reftype-function.data"/>
+			<value>template</value>
+			<a:documentation>a named xsl:template</a:documentation>
+		</choice>
 	</define>
 	
-	<define name="fullref.attrs">
-		<optional>
-			<ref name="refsheet.attr"/>
-		</optional>
-		<optional>
-			<ref name="reftype.attr"/>
-		</optional>
-		<ref name="ref.attr"/>
+	<define name="reftype-root.data">
+		<choice>
+			<value>package</value>
+			<a:documentation>an xsl:package</a:documentation>
+			<value>stylesheet</value>
+			<a:documentation>an xsl:stylesheet or xsl:transform</a:documentation>
+		</choice>
+	</define>
+	
+	<define name="reftype-error.data">
+		<value>error</value>
+		<a:documentation>a static or dynamic error</a:documentation>
+	</define>
+
+	<define name="reftype-any.data">
+		<choice>
+			<value>accumulator</value>
+			<a:documentation>an xsl:accumulator</a:documentation>
+			<value>attribute-set</value>
+			<a:documentation>an xsl:attribute-set</a:documentation>
+			<value>character-map</value>
+			<a:documentation>an xsl:character-map</a:documentation>
+			<value>decimal-format</value>
+			<a:documentation>a decimal format (xsl:decimal-format+)</a:documentation>
+			<value>key</value>
+			<a:documentation>a key function (xsl:key+)</a:documentation>
+			<value>mode</value>
+			<a:documentation>a mode definition (xsl:mode*)</a:documentation>
+			<value>output</value>
+			<a:documentation>an output definition (xsl:output*)</a:documentation>
+			<value>param</value>
+			<a:documentation>a stylesheet or package xsl:param</a:documentation>
+			<value>sourceline</value>
+			<a:documentation>a line in the stylesheet source text</a:documentation>
+			<value>variable</value>
+			<a:documentation>a global xsl:variable</a:documentation>
+			<ref name="reftype-abstract.data"/>
+			<ref name="reftype-callable.data"/>
+			<ref name="reftype-error.data"/>
+			<ref name="reftype-root.data"/>
+		</choice>
 	</define>
 
 	<sch:pattern>
