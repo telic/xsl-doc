@@ -789,7 +789,7 @@
 		<sch:rule context="*[@reftype eq 'error'] | xd:ref[@type eq 'error'] | xd:raises[@ref]">
 			<sch:let name="err" value="(@ref,@name)[1]"/>
 			<sch:assert test="$err castable as xs:QName">
-				References to errors must be lexical QNames.
+				References to errors must be expandable lexical QNames.
 			</sch:assert>
 			<!-- don't require error references to actually refer to anything -->
 		</sch:rule>
